@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shinchan Jet Fighter</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #87CEEB;
+        }
+        
+        #gameCanvas {
+            display: block;
+        }
+        
+        .donut {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: url('https://via.placeholder.com/30/FFD700/000000?text=D') no-repeat;
+            background-size: contain;
+        }
+        
+        #jet {
+            position: absolute;
+            width: 60px;
+            height: 40px;
+            background: url('https://via.placeholder.com/60x40/FF0000/000000?text=Jet') no-repeat;
+            background-size: contain;
+        }
+        
+        #shinchanBg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            opacity: 0.2;
+            z-index: -1;
+            background: url('https://via.placeholder.com/500?text=Shinchan') center/cover no-repeat;
+        }
+    </style>
+</head>
+<body>
+    <div id="shinchanBg"></div>
+    <div id="jet"></div>
+
+    <script>
+        const jet = document.getElementById('jet');
+        let jetX = 300;
+        let jetY = 400;
+        const jetSpeed = 5;
+        const donuts = [];
+        const maxDonuts = 10;
+
+        // Jet movement
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    if (jetX > 0) jetX -= jetSpeed;
+                    break;
+                case 'ArrowRight':
+                    if (jetX < window.innerWidth - 60) jetX += jetSpeed;
+                    break;
+                case 'ArrowUp':
+                    if (jetY > 0) jetY -= jetSpeed;
+                    break;
+                case 'ArrowDown':
+                    if (jetY < window.innerHeight - 40) jetY += jetSpeed;
+                    break;
+            }
+            updateJetPosition();
+        });
+
+        function updateJetPosition() {
+            jet.style.left = jetX + 'px';
+            jet.style.top = jetY + 'px';
+        }
+
+        // Create falling donuts
+        function createDonut() {
+            if (donuts.length >= maxDonuts) return;
+
+            const donut = document.createElement('div');
+            donut.className = 'donut';
+            donut.style.left = Math.random() * (window.innerWidth - 30) + 'px';
+            donut.style.top = '-30px';
+            document.body.appendChild(donut);
+
+            donuts.push({
+                element: donut,
+                y: -30,
+                speed: Math.random() * 2 + 1
+            });
+        }
+
+        // Update donuts position
+        function updateDonuts() {
+            for (let i = donuts.length - 1; i >= 0; i--) {
+                const donut = donuts[i];
+                donut.y += donut.speed;
+                donut.element.style.top = donut.y + 'px';
+
+                // Check collision with jet
+                if (isCollision(donut, jetX, jetY)) {
+                    donut.element.remove();
+                    donuts.splice(i, 1);
+                    continue;
+                }
+
+                // Remove donut if it falls below screen
+                if (donut.y > window.innerHeight) {
+                    donut.element.remove();
+                    donuts.splice(i, 1);
+                }
+            }
+        }
+
+        // Simple collision detection
+        function isCollision(donut, jetX, jetY) {
+            const donutX = parseFloat(donut.element.style.left);
+            const donutY = donut.y;
+            
+            return jetX < donutX + 30 &&
+                   jetX + 60 > donutX &&
+                   jetY < donutY + 30 &&
+                   jetY + 40 > donutY;
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (Math.random() < 0.03) createDonut();
+            updateDonuts();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initial setup
+        updateJetPosition();
+        gameLoop();
+    </script>
+</body>
+</html>
